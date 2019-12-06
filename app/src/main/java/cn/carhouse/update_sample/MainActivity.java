@@ -14,7 +14,6 @@ import cn.carhouse.permission.PermissionListenerAdapter;
 import cn.carhouse.permission.XPermission;
 import cn.carhouse.update.bean.AppUpdateBean;
 import cn.carhouse.update.listener.OnUpdateListener;
-import cn.carhouse.update.utils.AppFileProvider;
 import cn.carhouse.update.utils.UpdateUtils;
 
 public class MainActivity extends AppCompatActivity {
@@ -58,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSucceed(File apkFile) {
                 // 安装
-                AppFileProvider.installApk(MainActivity.this, apkFile);
+                mDownloadUtils.installApk(apkFile);
                 Toast.makeText(getApplicationContext(), "下载成功", Toast.LENGTH_SHORT).show();
             }
 

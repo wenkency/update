@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import java.io.File;
 
+import cn.carhouse.filepaths.AppFileProvider;
 import cn.carhouse.update.bean.AppUpdateBean;
 import cn.carhouse.update.listener.OnUpdateListener;
 
@@ -96,7 +97,7 @@ public class UpdateUtils {
                     if (mOnUpdateListener != null) {
                         mOnUpdateListener.onSucceed(apkFile);
                     } else {
-                        installAPK();
+                        installApk();
                     }
                     return;
                 }
@@ -220,7 +221,7 @@ public class UpdateUtils {
                     if (mOnUpdateListener != null) {
                         mOnUpdateListener.onSucceed(getApkFile());
                     } else {
-                        installAPK();
+                        installApk();
                     }
                     cursor.close();
                     if (mContext != null) {
@@ -244,9 +245,17 @@ public class UpdateUtils {
     /**
      * 安装APK
      */
-    private void installAPK() {
+    private void installApk() {
         // 安装APK
         AppFileProvider.installApk(mContext, getApkFile());
+    }
+
+    /**
+     * 安装APK
+     */
+    public void installApk(File file) {
+        // 安装APK
+        AppFileProvider.installApk(mContext, file);
     }
 
     /**
