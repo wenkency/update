@@ -113,11 +113,11 @@ public class UpdateUtils {
         request.setAllowedOverRoaming(false);
         request.allowScanningByMediaScanner();
         // 在通知栏中显示，默认就是显示的
-        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
-        request.setTitle(title);
-        request.setDescription(description);
-        request.setVisibleInDownloadsUi(true);
-        //4. 设置下载的路径
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
+                .setTitle(title)
+                .setDescription(description)
+                .setVisibleInDownloadsUi(true);
+        // 4. 设置下载的路径 --Uri.fromFile(getApkFile())
         request.setDestinationUri(Uri.fromFile(getApkFile()));
         // 获取DownloadManager
         if (downloadManager == null)

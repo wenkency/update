@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void down() {
-        String apkUrl = "https://your apk down url";
+        String apkUrl = "https://3330f280065e60423847146be51e42a7.dd.cdntips.com/imtt.dd.qq.com/16891/apk/B37CFF22FEEBB204509F2F87089A52AB.apk?mkey=5e0efd57ca68861d&f=9870&fsname=cn.carhouse.yctone_2.8.9_150.apk";
         AppUpdateBean bean = new AppUpdateBean(apkUrl, "apkName.apk", 123);
         mDownloadUtils = new UpdateUtils(MainActivity.this, bean);
         mDownloadUtils.setOnUpdateListener(new OnUpdateListener() {

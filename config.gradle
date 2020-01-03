@@ -11,7 +11,7 @@ ext {
     versions = [
             appcompat       : "1.1.0",
             constraintlayout: "1.1.3",
-            filepaths: "1.1.0",
+            filepaths: "1.2.0",
     ]
     // 公共配置
     libs = [
