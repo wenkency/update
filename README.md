@@ -13,7 +13,7 @@ allprojects {
 	}
 
 
-implementation 'com.github.wenkency:update:1.0.0'
+implementation 'com.github.wenkency:update:1.2.0'
 
 ```
 
