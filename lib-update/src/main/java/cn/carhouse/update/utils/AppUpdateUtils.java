@@ -60,9 +60,6 @@ public class AppUpdateUtils {
         if (checkSDExist()) {
             directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         }
-        if (directory == null) {
-            directory = context.getFilesDir();
-        }
         if (!directory.exists()) {
             directory.mkdirs();
         }

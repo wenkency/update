@@ -25,6 +25,6 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation "androidx.appcompat:appcompat:${versions.appcompat}"
-    implementation "com.github.wenkency:filepaths:${versions.filepaths}"
+    compileOnly "androidx.appcompat:appcompat:${versions.appcompat}"
+    compileOnly "com.github.wenkency:filepaths:${versions.filepaths}"
 }

@@ -35,7 +35,7 @@ public class UpdateUtils {
     // 描述信息
     public String description = "版本更新";
     // 你的App名称
-    private String title = "爱车小屋商户版";
+    private String title = "爱车小屋";
     private final SharedPreferences mPreferences;
     // 下载器
     private DownloadManager downloadManager;

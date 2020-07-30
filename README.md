@@ -13,11 +13,12 @@ allprojects {
 	}
 
 
-implementation 'com.github.wenkency:update:1.4.0'
+implementation 'com.github.wenkency:update:1.5.0'
+implementation 'com.github.wenkency:filepaths:1.2.0'
 
 ```
 
-### 使用方式
+### 使用方式(记得添加内存卡权限)
 ```
         private void down() {
             String apkUrl = "https://your apk down url";
