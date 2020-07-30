@@ -10,8 +10,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.io.File;
 
 import cn.carhouse.permission.Permission;
-import cn.carhouse.permission.PermissionListenerAdapter;
 import cn.carhouse.permission.XPermission;
+import cn.carhouse.permission.callback.PermissionListenerAdapter;
 import cn.carhouse.update.bean.AppUpdateBean;
 import cn.carhouse.update.listener.OnUpdateListener;
 import cn.carhouse.update.utils.UpdateUtils;
