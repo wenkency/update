@@ -80,7 +80,11 @@ public class UpdateUtils {
      */
     public void downloadAPK() {
         // 1. 非空校验
-        if (mContext == null || mUpdateBean == null || isStart) {
+        if (mContext == null || mUpdateBean == null) {
+            return;
+        }
+        if (isStart) {
+            Toast.makeText(mContext, "正在更新", Toast.LENGTH_SHORT).show();
             return;
         }
         // 校验有没有在下载了
@@ -92,7 +96,7 @@ public class UpdateUtils {
         }
         // 1. 在这里要做一下校验
         File apkFile = getApkFile();
-        // 判断有没有下载成功
+        // 下载的地址相同，判断有没有下载成功
         if (apkFile.exists() && apkFile.isFile() && apkFile.length() > 1024 && isDownload()) {
             try {
                 // 判断下载好的APK版本和正在使用的APK版本
@@ -232,16 +236,8 @@ public class UpdateUtils {
                     isStart = false;
                     // 下载完成安装APK
                     putDownload(true);
-                    // 有监听让用户去做
-                    if (mOnUpdateListener != null) {
-                        mOnUpdateListener.onSucceed(getApkFile());
-                        // 自动安装
-                        if (autoInstall) {
-                            installApk();
-                        }
-                    } else {
-                        installApk();
-                    }
+                    // 成功回调
+                    onDownloadSucceed(getApkFile());
                     cursor.close();
                     if (mContext != null) {
                         mContext.unregisterReceiver(receiver);
@@ -259,6 +255,17 @@ public class UpdateUtils {
                     cursor.close();
                     break;
             }
+        }
+    }
+
+    private void onDownloadSucceed(File apkFile) {
+        if (mOnUpdateListener != null) {
+            mOnUpdateListener.onSucceed(apkFile);
+            if (autoInstall) {
+                installApk();
+            }
+        } else {
+            installApk();
         }
     }
 
@@ -309,6 +316,7 @@ public class UpdateUtils {
         }
         return mPreferences.getBoolean(DOWNLOADED, false);
     }
+
 
     public void setOnUpdateListener(OnUpdateListener onUpdateListener) {
         mOnUpdateListener = onUpdateListener;
