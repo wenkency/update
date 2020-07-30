@@ -9,6 +9,10 @@ import java.io.Serializable;
 
 public abstract class OnUpdateListener implements Serializable {
     /**
+     * 开始
+     */
+    public abstract void onStart();
+    /**
      * 下载失败
      */
     public abstract void onFailed(String msg);

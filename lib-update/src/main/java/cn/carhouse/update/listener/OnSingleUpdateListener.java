@@ -6,7 +6,12 @@ import java.io.File;
  * 更新的监听
  */
 
-public class OnUpdateSimpleListener extends OnUpdateListener {
+public class OnSingleUpdateListener extends OnUpdateListener {
+    @Override
+    public void onStart() {
+
+    }
+
     @Override
     public void onFailed(String msg) {
 

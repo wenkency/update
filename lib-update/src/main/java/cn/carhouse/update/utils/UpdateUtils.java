@@ -46,6 +46,11 @@ public class UpdateUtils {
     private AppUpdateBean mUpdateBean;
     private OnUpdateListener mOnUpdateListener;
     private static Handler mHandler = new Handler(Looper.getMainLooper());
+    /**
+     * 自动安装
+     */
+    private boolean autoInstall = true;
+    private static boolean isStart = false;
 
 
     public UpdateUtils(Context context, AppUpdateBean updateBean) {
@@ -65,15 +70,20 @@ public class UpdateUtils {
         this.description = description;
     }
 
+    public void setAutoInstall(boolean autoInstall) {
+        this.autoInstall = autoInstall;
+    }
+
     /**
      * 注意：要自己添加内存卡读取权限
      * 下载apk主要方法
      */
     public void downloadAPK() {
         // 1. 非空校验
-        if (mContext == null || mUpdateBean == null) {
+        if (mContext == null || mUpdateBean == null || isStart) {
             return;
         }
+        // 校验有没有在下载了
         // 2. URL校验
         String url = mUpdateBean.getApkUrl();
         if (TextUtils.isEmpty(url) || !URLUtil.isNetworkUrl(mUpdateBean.getApkUrl())) {
@@ -132,6 +142,10 @@ public class UpdateUtils {
             // 开启个任务去每秒查询下载进度
             mHandler.postDelayed(mTask, 1000);
         }
+        if (mOnUpdateListener != null) {
+            mOnUpdateListener.onStart();
+        }
+        isStart = true;
     }
 
     private Runnable mTask = new Runnable() {
@@ -215,11 +229,16 @@ public class UpdateUtils {
                 // 下载完成
                 case DownloadManager.STATUS_SUCCESSFUL:
                     mHandler.removeCallbacks(mTask);
+                    isStart = false;
                     // 下载完成安装APK
                     putDownload(true);
                     // 有监听让用户去做
                     if (mOnUpdateListener != null) {
                         mOnUpdateListener.onSucceed(getApkFile());
+                        // 自动安装
+                        if (autoInstall) {
+                            installApk();
+                        }
                     } else {
                         installApk();
                     }
@@ -230,6 +249,7 @@ public class UpdateUtils {
                     break;
                 // 下载失败
                 case DownloadManager.STATUS_FAILED:
+                    isStart = false;
                     mHandler.removeCallbacks(mTask);
                     if (mOnUpdateListener != null) {
                         mOnUpdateListener.onFailed("下载失败");
@@ -301,6 +321,7 @@ public class UpdateUtils {
         try {
             mOnUpdateListener = null;
             mHandler.removeCallbacks(mTask);
+            isStart = false;
             if (mContext != null) {
                 mContext.unregisterReceiver(receiver);
             }

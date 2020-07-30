@@ -13,7 +13,7 @@ allprojects {
 	}
 
 
-implementation 'com.github.wenkency:update:1.5.0'
+implementation 'com.github.wenkency:update:1.6.0'
 implementation 'com.github.wenkency:filepaths:1.2.0'
 
 ```

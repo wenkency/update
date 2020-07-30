@@ -13,7 +13,7 @@ import cn.carhouse.permission.Permission;
 import cn.carhouse.permission.XPermission;
 import cn.carhouse.permission.callback.PermissionListenerAdapter;
 import cn.carhouse.update.bean.AppUpdateBean;
-import cn.carhouse.update.listener.OnUpdateListener;
+import cn.carhouse.update.listener.OnSingleUpdateListener;
 import cn.carhouse.update.utils.UpdateUtils;
 
 public class MainActivity extends AppCompatActivity {
@@ -45,10 +45,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void down() {
-        String apkUrl = "https://static.car-house.cn/download/business/app/B_2.9.3_0602_online.apk";
-        AppUpdateBean bean = new AppUpdateBean(apkUrl, "B_2.9.3_0602_online.apk", 152);
+        String apkUrl = "http://img.car-house.cn/download/customer/app/20180507155306985.apk";
+        AppUpdateBean bean = new AppUpdateBean(apkUrl, "B_1.7.4.2.apk", 44);
         mDownloadUtils = new UpdateUtils(MainActivity.this, bean);
-        mDownloadUtils.setOnUpdateListener(new OnUpdateListener() {
+        mDownloadUtils.setOnUpdateListener(new OnSingleUpdateListener() {
+            @Override
+            public void onStart() {
+                Toast.makeText(getApplicationContext(), "正在后台更新...", Toast.LENGTH_SHORT).show();
+            }
+
             @Override
             public void onFailed(String msg) {
                 Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
