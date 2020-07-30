@@ -94,6 +94,7 @@ public class UpdateUtils {
             Toast.makeText(mContext, "APK下载地址不正确", Toast.LENGTH_SHORT).show();
             return;
         }
+
         // 1. 在这里要做一下校验
         File apkFile = getApkFile();
         // 下载的地址相同，判断有没有下载成功
