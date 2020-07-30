@@ -109,11 +109,7 @@ public class UpdateUtils {
                 // 1. 下载好的APK是不是最新的
                 // 2. 正在使用的APK是不是最新的
                 if (apkVersionCode >= mUpdateBean.getVersionCode() && apkVersionCode > versionCode) {
-                    if (mOnUpdateListener != null) {
-                        mOnUpdateListener.onSucceed(apkFile);
-                    } else {
-                        installApk();
-                    }
+                    onDownloadSucceed(apkFile);
                     return;
                 }
             } catch (Throwable e) {
