@@ -7,11 +7,14 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.io.File;
+import com.boardour.permission.OnPermissionCallback;
+import com.boardour.permission.OnPermissionCallbackAdapter;
+import com.boardour.permission.Permission;
+import com.boardour.permission.XPermission;
 
-import cn.carhouse.permission.Permission;
-import cn.carhouse.permission.XPermission;
-import cn.carhouse.permission.callback.PermissionListenerAdapter;
+import java.io.File;
+import java.util.List;
+
 import cn.carhouse.update.bean.AppUpdateBean;
 import cn.carhouse.update.listener.OnSingleUpdateListener;
 import cn.carhouse.update.utils.UpdateUtils;
@@ -34,20 +37,21 @@ public class MainActivity extends AppCompatActivity {
     public void downloadApk(View view) {
         // 申请内存卡读取权限
         XPermission.with(this)
-                .permissions(Permission.STORAGE)
-                .request(new PermissionListenerAdapter() {
+                .permission(Permission.MANAGE_EXTERNAL_STORAGE)
+                .request(new OnPermissionCallbackAdapter() {
                     @Override
-                    public void onSucceed() {
-                        down();
+                    public void onGranted(List<String> permissions, boolean all) {
+                        if (all){
+                            down();
+                        }
                     }
                 });
 
     }
 
     private void down() {
-        String apkUrl = "http://img.car-house.cn/download/customer/app/20180507155306985.apk";
-        AppUpdateBean bean = new AppUpdateBean(apkUrl, "B_1.7.4.2.apk", 44);
-        mDownloadUtils = new UpdateUtils(MainActivity.this, bean);
+
+        mDownloadUtils = new UpdateUtils(MainActivity.this);
         mDownloadUtils.setOnUpdateListener(new OnSingleUpdateListener() {
             @Override
             public void onStart() {
@@ -71,7 +75,9 @@ public class MainActivity extends AppCompatActivity {
                 mTextView.setText(String.format("%.2f", progress) + "%");
             }
         });
-        mDownloadUtils.downloadAPK();
+        String apkUrl = "https://img.car-house.cn/download/customer/app/20180507155306985.apk";
+        AppUpdateBean bean = new AppUpdateBean(apkUrl, "abc.apk", 45);
+        mDownloadUtils.downloadAPK(bean);
     }
 
     @Override

@@ -1,2 +1,3 @@
 include ':app', ':lib-update'
+include ':lib-aar-permission'
 rootProject.name='Update'

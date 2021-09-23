@@ -66,4 +66,23 @@ public class AppUpdateUtils {
         File apkFile = new File(directory, fileName);
         return apkFile;
     }
+
+    /**
+     * 获取app缓存路径    SDCard/Android/data/你的应用的包名/cache
+     *
+     * @param context
+     * @return
+     */
+    public static File getCacheDir(Context context) {
+        File cachePath;
+        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
+                || !Environment.isExternalStorageRemovable()) {
+            //外部存储可用
+            cachePath = context.getExternalCacheDir();
+        } else {
+            //外部存储不可用
+            cachePath = context.getCacheDir();
+        }
+        return cachePath;
+    }
 }

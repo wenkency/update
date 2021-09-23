@@ -1,5 +1,6 @@
 package cn.carhouse.update.utils;
 
+import android.annotation.SuppressLint;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -10,16 +11,18 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
+import android.util.Log;
 import android.webkit.URLUtil;
 import android.widget.Toast;
 
 import java.io.File;
 
-import cn.carhouse.filepaths.AppFileProvider;
 import cn.carhouse.update.bean.AppUpdateBean;
+import cn.carhouse.update.filepaths.AppFileProvider;
 import cn.carhouse.update.listener.OnUpdateListener;
 
 
@@ -32,34 +35,32 @@ public class UpdateUtils {
     private static final String DOWNLOADED = "DOWNLOADED";
     // 默认APK本地名称
     public static final String DEF_APK_NAME = "update.apk";
+    public static final int DELAY_MILLIS = 200;
     // 描述信息
     public String description = "版本更新";
     // 你的App名称
-    private String title = "爱车小屋";
+    private String title = "博浩光电";
     private final SharedPreferences mPreferences;
     // 下载器
-    private DownloadManager downloadManager;
+    private DownloadManager mManager;
     private Context mContext;
     // 下载的ID
-    private long downloadId = -1;
+    private long mDownloadId = -1;
     // 下载要用到的类
-    private AppUpdateBean mUpdateBean;
     private OnUpdateListener mOnUpdateListener;
     private static Handler mHandler = new Handler(Looper.getMainLooper());
-    /**
-     * 自动安装
-     */
     private boolean autoInstall = true;
     private static boolean isStart = false;
+    private String fileName;
 
 
-    public UpdateUtils(Context context, AppUpdateBean updateBean) {
+    public UpdateUtils(Context context) {
         if (mContext == null) {
             new RuntimeException("context is null");
         }
         this.mContext = context.getApplicationContext();
-        this.mUpdateBean = updateBean;
         mPreferences = mContext.getSharedPreferences(CONFIG, Context.MODE_PRIVATE);
+        mManager = (DownloadManager) mContext.getSystemService(Context.DOWNLOAD_SERVICE);
     }
 
     public void setTitle(String title) {
@@ -78,9 +79,9 @@ public class UpdateUtils {
      * 注意：要自己添加内存卡读取权限
      * 下载apk主要方法
      */
-    public void downloadAPK() {
+    public void downloadAPK(AppUpdateBean bean) {
         // 1. 非空校验
-        if (mContext == null || mUpdateBean == null) {
+        if (mContext == null || bean == null) {
             return;
         }
         if (isStart) {
@@ -89,12 +90,12 @@ public class UpdateUtils {
         }
         // 校验有没有在下载了
         // 2. URL校验
-        String url = mUpdateBean.getApkUrl();
-        if (TextUtils.isEmpty(url) || !URLUtil.isNetworkUrl(mUpdateBean.getApkUrl())) {
+        String url = bean.getApkUrl();
+        if (TextUtils.isEmpty(url) || !URLUtil.isNetworkUrl(bean.getApkUrl())) {
             Toast.makeText(mContext, "APK下载地址不正确", Toast.LENGTH_SHORT).show();
             return;
         }
-
+        fileName = bean.getApkName();
         // 1. 在这里要做一下校验
         File apkFile = getApkFile();
         // 下载的地址相同，判断有没有下载成功
@@ -108,7 +109,7 @@ public class UpdateUtils {
                 int apkVersionCode = packageInfo.versionCode;
                 // 1. 下载好的APK是不是最新的
                 // 2. 正在使用的APK是不是最新的
-                if (apkVersionCode >= mUpdateBean.getVersionCode() && apkVersionCode > versionCode) {
+                if (apkVersionCode >= bean.getVersionCode() && apkVersionCode > versionCode) {
                     onDownloadSucceed(apkFile);
                     return;
                 }
@@ -121,27 +122,28 @@ public class UpdateUtils {
         // 3. 创建下载任务
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
         // 移动网络情况下是否允许漫游
-        request.setAllowedOverRoaming(false);
+        request.setAllowedOverRoaming(true);
         request.allowScanningByMediaScanner();
         // 在通知栏中显示，默认就是显示的
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
                 .setTitle(title)
                 .setDescription(description)
                 .setVisibleInDownloadsUi(true);
-        // 4. 设置下载的路径 --Uri.fromFile(getApkFile())
+        // 4. 设置下载的路径
         request.setDestinationUri(Uri.fromFile(getApkFile()));
         // 获取DownloadManager
-        if (downloadManager == null)
-            downloadManager = (DownloadManager) mContext.getSystemService(Context.DOWNLOAD_SERVICE);
+
         // 将下载请求加入下载队列，加入下载队列后会给该任务返回一个long型的id，通过该id可以取消任务，重启任务、获取下载的文件等等
-        if (downloadManager != null) {
-            downloadId = downloadManager.enqueue(request);
+        if (mManager != null) {
+            mDownloadId = mManager.enqueue(request);
         }
         // 注册广播接收者，监听下载完成状态
-        mContext.registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
+        mContext.registerReceiver(receiver, filter);
         if (mOnUpdateListener != null) {
             // 开启个任务去每秒查询下载进度
-            mHandler.postDelayed(mTask, 1000);
+            mHandler.postDelayed(mTask, DELAY_MILLIS);
         }
         if (mOnUpdateListener != null) {
             mOnUpdateListener.onStart();
@@ -154,7 +156,7 @@ public class UpdateUtils {
         public void run() {
             if (mOnUpdateListener != null) {
                 checkStatus();
-                mHandler.postDelayed(mTask, 1000);
+                mHandler.postDelayed(mTask, DELAY_MILLIS);
             }
         }
     };
@@ -165,7 +167,7 @@ public class UpdateUtils {
     private void deleteApkFile(File apkFile) {
         try {
             putDownload(false);
-            if (apkFile.exists()) {
+            if (apkFile.exists() && apkFile.isFile()) {
                 apkFile.delete();
             }
         } catch (Throwable e) {
@@ -174,15 +176,17 @@ public class UpdateUtils {
 
     }
 
-
     /**
      * 广播监听下载完成
      */
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            // 下载完成会调一次这里
-            checkStatus();
+            Log.e("TAG", "BroadcastReceiver:" + intent.getAction());
+            if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(intent.getAction())) {
+                // 下载完成会调一次这里
+                checkStatus();
+            }
         }
     };
 
@@ -190,18 +194,18 @@ public class UpdateUtils {
      * 检查下载状态
      */
     private void checkStatus() {
-        if (downloadId == -1) {
+        if (mDownloadId == -1) {
             return;
         }
         DownloadManager.Query query = new DownloadManager.Query();
         // 通过下载的id查找
-        query.setFilterById(downloadId);
-        Cursor cursor = downloadManager.query(query);
+        query.setFilterById(mDownloadId);
+        Cursor cursor = mManager.query(query);
         if (cursor == null) {
             return;
         }
         if (cursor.moveToFirst()) {
-            int status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS));
+            @SuppressLint("Range") int status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS));
             try {
                 // 如果有下载监听就去查询文件下载进度
                 if (mOnUpdateListener != null) {
@@ -216,6 +220,7 @@ public class UpdateUtils {
                     }
                 }
             } catch (Throwable e) {
+                e.printStackTrace();
             }
             switch (status) {
                 // 下载暂停
@@ -230,15 +235,14 @@ public class UpdateUtils {
                 // 下载完成
                 case DownloadManager.STATUS_SUCCESSFUL:
                     mHandler.removeCallbacks(mTask);
-                    isStart = false;
-                    // 下载完成安装APK
-                    putDownload(true);
-                    // 成功回调
-                    onDownloadSucceed(getApkFile());
-                    cursor.close();
-                    if (mContext != null) {
-                        mContext.unregisterReceiver(receiver);
+                    if (isStart) {
+                        isStart = false;
+                        // 下载完成安装APK
+                        putDownload(true);
+                        // 成功回调
+                        onDownloadSucceed(getApkFile());
                     }
+                    cursor.close();
                     break;
                 // 下载失败
                 case DownloadManager.STATUS_FAILED:
@@ -286,11 +290,14 @@ public class UpdateUtils {
      * 文件下载的路径
      */
     private File getApkFile() {
-        String fileName = mUpdateBean.getApkName();
         if (TextUtils.isEmpty(fileName)) {
             fileName = DEF_APK_NAME;
         }
-        return AppUpdateUtils.getApkFile(mContext, fileName);
+        File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        return new File(dir, fileName);
     }
 
 
@@ -326,6 +333,7 @@ public class UpdateUtils {
         try {
             mOnUpdateListener = null;
             mHandler.removeCallbacks(mTask);
+            mManager.remove(mDownloadId);
             isStart = false;
             if (mContext != null) {
                 mContext.unregisterReceiver(receiver);
