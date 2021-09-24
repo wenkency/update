@@ -1,11 +1,9 @@
 package cn.carhouse.update_sample;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.boardour.permission.OnPermissionCallbackAdapter;
@@ -14,7 +12,6 @@ import com.boardour.permission.XPermission;
 import com.lven.retrofit.RetrofitPresenter;
 import com.lven.retrofit.callback.BeanCallback;
 import com.lven.retrofit.config.RestConfig;
-import com.lven.retrofit.core.RestClient;
 
 import java.util.List;
 

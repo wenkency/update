@@ -3,7 +3,7 @@
     package="com.boardour.aar" >
 
     <uses-sdk
-        android:minSdkVersion="21"
+        android:minSdkVersion="16"
         android:targetSdkVersion="30" />
 
 </manifest>
