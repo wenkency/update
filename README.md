@@ -18,7 +18,8 @@ dependencies {
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.google.code.gson:gson:2.8.8'
     // 更新
-    implementation files("${projectDir.getAbsolutePath()}/libs/update.aar")
+    implementation 'com.github.wenkency:update:1.9.0'
+    // implementation files("${projectDir.getAbsolutePath()}/libs/update.aar")
 }
 ```
 
