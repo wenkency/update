@@ -1,6 +1,6 @@
 # UpdateUtils
-更新APP，有进度回调，适用于APP的更新和任何自定义更新UI的开发。
-用的是Android原生系统的下载器，支持通知栏显示，兼容性较好。
+
+更新APP，有进度回调，适用于APP的更新和任何自定义更新UI的开发。 用的是Android原生系统的下载器，支持通知栏显示，兼容性较好。
 
 ### 引入
 
@@ -12,51 +12,99 @@ allprojects {
 		}
 	}
 
-
-implementation 'com.github.wenkency:update:1.8.0'
-implementation 'com.github.wenkency:filepaths:1.2.0'
-
+dependencies {
+    // 网络请求
+    implementation 'com.github.wenkency:kotlin-retrofit:2.0.0'
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.google.code.gson:gson:2.8.8'
+    // 更新
+    implementation files("${projectDir.getAbsolutePath()}/libs/update.aar")
+}
 ```
 
-### 使用方式(记得添加内存卡权限)
+### 网络初始化
+
 ```
-        private void down() {
-            String apkUrl = "https://your apk down url";
-            AppUpdateBean bean = new AppUpdateBean(apkUrl, "apkName.apk", 123);
-            mDownloadUtils = new UpdateUtils(MainActivity.this, bean);
-            mDownloadUtils.setOnUpdateListener(new OnUpdateListener() {
-                @Override
-                public void onFailed(String msg) {
-                    Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
-                }
+    // 网络初始化
+    RestConfig.INSTANCE
+            .baseUrl("http://en.boardour.com")
+            .register(this);
+```
 
-                @Override
-                public void onSucceed(File apkFile) {
-                    // 安装
-                    AppFileProvider.installApk(MainActivity.this, apkFile);
-                    Toast.makeText(getApplicationContext(), "下载成功", Toast.LENGTH_SHORT).show();
-                }
+### APK更新使用事例
 
-                @Override
-                public void onProgress(int total, int current, float progress) {
-                    mTextView.setText(String.format("%.2f", progress) + "%");
-                }
-            });
-            mDownloadUtils.downloadAPK();
-        }
+```
+/**
+ * APK更新事例
+ */
+public class MainActivity extends AppCompatActivity {
+    // 更新的工具类
+    private UpdateUtils mDownloadUtils;
+    private TextView mTextView;
 
-        @Override
-        protected void onDestroy() {
-            if (mDownloadUtils != null) {
-                mDownloadUtils.stop();
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        mTextView = findViewById(R.id.tv);
+        
+        mDownloadUtils = new UpdateUtils(this);
+
+    }
+
+    /**
+     * 调用更新
+     */
+    public void downloadApk(View view) {
+        // 1. 申请内存卡读取权限
+        XPermission.with(this)
+                .permission(Permission.MANAGE_EXTERNAL_STORAGE)
+                .request(new OnPermissionCallbackAdapter() {
+                    @Override
+                    public void onGranted(List<String> permissions, boolean all) {
+                        if (all) {
+                            update();
+                        }
+                    }
+                });
+
+    }
+
+    // 2. 网络请求更新接口
+    private void update() {
+        // JSON地址
+        final String url = "download/s80/apkupdater1.json";
+        RetrofitPresenter.INSTANCE.get(this, url, new BeanCallback<UpdateBean>() {
+            @Override
+            public void onSucceed(UpdateBean data) {
+                down(data);
             }
-            super.onDestroy();
+        });
+    }
 
+    // 3. 下载APK
+    private void down(UpdateBean data) {
+        // 创建更新类
+        AppUpdateBean bean = new AppUpdateBean(data.getUrl(), data.getAppName(), data.getVersionCode());
+        // 更新进度回调
+        mDownloadUtils.setOnUpdateListener(new OnSingleUpdateListener() {
+            @Override
+            public void onProgress(int total, int current, float progress) {
+                mTextView.setText(total + ":" + String.format("%.2f", progress) + "%");
+            }
+        });
+        // 更新
+        mDownloadUtils.downloadAPK(bean);
+    }
+
+    @Override
+    protected void onDestroy() {
+        // 4. 销毁操作
+        if (mDownloadUtils != null) {
+            mDownloadUtils.stop();
+            mDownloadUtils = null;
         }
-
+        super.onDestroy();
+    }
+}
 ```
-
-### 运行结果
-
-<img src="screenshot/image.jpg" width="360px"/>
-<img src="screenshot/image1.jpg" width="360px"/>

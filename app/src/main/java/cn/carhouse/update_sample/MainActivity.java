@@ -1,21 +1,25 @@
 package cn.carhouse.update_sample;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.boardour.permission.OnPermissionCallback;
 import com.boardour.permission.OnPermissionCallbackAdapter;
 import com.boardour.permission.Permission;
 import com.boardour.permission.XPermission;
+import com.lven.retrofit.RetrofitPresenter;
+import com.lven.retrofit.callback.BeanCallback;
+import com.lven.retrofit.config.RestConfig;
+import com.lven.retrofit.core.RestClient;
 
-import java.io.File;
 import java.util.List;
 
 import cn.carhouse.update.bean.AppUpdateBean;
+import cn.carhouse.update.bean.UpdateBean;
 import cn.carhouse.update.listener.OnSingleUpdateListener;
 import cn.carhouse.update.utils.UpdateUtils;
 
@@ -29,6 +33,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mTextView = findViewById(R.id.tv);
+        // 网络测试
+        RestConfig.INSTANCE
+                .baseUrl("https://en.boardour.com")
+                .register(getApplication());
+        mDownloadUtils = new UpdateUtils(this);
+
     }
 
     /**
@@ -41,42 +51,33 @@ public class MainActivity extends AppCompatActivity {
                 .request(new OnPermissionCallbackAdapter() {
                     @Override
                     public void onGranted(List<String> permissions, boolean all) {
-                        if (all){
-                            down();
+                        if (all) {
+                            update();
                         }
                     }
                 });
 
     }
 
-    private void down() {
-
-        mDownloadUtils = new UpdateUtils(MainActivity.this);
-        mDownloadUtils.setOnUpdateListener(new OnSingleUpdateListener() {
+    // 请求更新接口
+    private void update() {
+        final String url = "download/s80/apkupdater1.json";
+        RetrofitPresenter.INSTANCE.get(this, url, new BeanCallback<UpdateBean>() {
             @Override
-            public void onStart() {
-                Toast.makeText(getApplicationContext(), "正在后台更新...", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onFailed(String msg) {
-                Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onSucceed(File apkFile) {
-                // 安装
-                mDownloadUtils.installApk(apkFile);
-                Toast.makeText(getApplicationContext(), "下载成功", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onProgress(int total, int current, float progress) {
-                mTextView.setText(String.format("%.2f", progress) + "%");
+            public void onSucceed(UpdateBean data) {
+                down(data);
             }
         });
-        String apkUrl = "https://img.car-house.cn/download/customer/app/20180507155306985.apk";
-        AppUpdateBean bean = new AppUpdateBean(apkUrl, "abc.apk", 45);
+    }
+
+    private void down(UpdateBean data) {
+        AppUpdateBean bean = new AppUpdateBean(data.getUrl(), data.getAppName(), data.getVersionCode());
+        mDownloadUtils.setOnUpdateListener(new OnSingleUpdateListener() {
+            @Override
+            public void onProgress(int total, int current, float progress) {
+                mTextView.setText(total + ":" + String.format("%.2f", progress) + "%");
+            }
+        });
         mDownloadUtils.downloadAPK(bean);
     }
 
@@ -86,6 +87,5 @@ public class MainActivity extends AppCompatActivity {
             mDownloadUtils.stop();
         }
         super.onDestroy();
-
     }
 }

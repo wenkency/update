@@ -35,7 +35,7 @@ public class UpdateUtils {
     private static final String DOWNLOADED = "DOWNLOADED";
     // 默认APK本地名称
     public static final String DEF_APK_NAME = "update.apk";
-    public static final int DELAY_MILLIS = 200;
+    public static final int DELAY_MILLIS = 1000;
     // 描述信息
     public String description = "版本更新";
     // 你的App名称
