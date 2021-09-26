@@ -124,8 +124,10 @@ public class UpdateUtils {
         // 移动网络情况下是否允许漫游
         request.setAllowedOverRoaming(true);
         request.allowScanningByMediaScanner();
+        // 设置媒体类型为apk文件
+        request.setMimeType("application/vnd.android.package-archive");
         // 在通知栏中显示，默认就是显示的
-        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                 .setTitle(title)
                 .setDescription(description)
                 .setVisibleInDownloadsUi(true);
@@ -140,6 +142,7 @@ public class UpdateUtils {
         // 注册广播接收者，监听下载完成状态
         IntentFilter filter = new IntentFilter();
         filter.addAction(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
+        filter.addAction(DownloadManager.ACTION_NOTIFICATION_CLICKED);
         mContext.registerReceiver(receiver, filter);
         if (mOnUpdateListener != null) {
             // 开启个任务去每秒查询下载进度
@@ -184,8 +187,14 @@ public class UpdateUtils {
         public void onReceive(Context context, Intent intent) {
             Log.e("TAG", "BroadcastReceiver:" + intent.getAction());
             if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(intent.getAction())) {
+                // 下载完成
                 // 下载完成会调一次这里
                 checkStatus();
+            } else if (intent.getAction().equals(DownloadManager.ACTION_NOTIFICATION_CLICKED)) {
+                // 未下载完成，点击跳转系统的下载管理界面
+                Intent viewDownloadIntent = new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS);
+                viewDownloadIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(viewDownloadIntent);
             }
         }
     };
@@ -202,10 +211,13 @@ public class UpdateUtils {
         query.setFilterById(mDownloadId);
         Cursor cursor = mManager.query(query);
         if (cursor == null) {
+            Log.e("TAG", "cursor is null");
             return;
         }
+        Log.e("TAG", "cursor :" + cursor.moveToFirst());
         if (cursor.moveToFirst()) {
-            @SuppressLint("Range") int status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS));
+            @SuppressLint("Range")
+            int status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS));
             try {
                 // 如果有下载监听就去查询文件下载进度
                 if (mOnUpdateListener != null) {
@@ -221,19 +233,24 @@ public class UpdateUtils {
                 }
             } catch (Throwable e) {
                 e.printStackTrace();
+                Log.e("TAG", "Throwable :" + e.getMessage());
             }
             switch (status) {
                 // 下载暂停
                 case DownloadManager.STATUS_PAUSED:
+                    Log.e("TAG", "STATUS_PAUSED");
                     break;
                 // 下载延迟
                 case DownloadManager.STATUS_PENDING:
+                    Log.e("TAG", "STATUS_PENDING");
                     break;
                 // 正在下载
                 case DownloadManager.STATUS_RUNNING:
+                    Log.e("TAG", "STATUS_RUNNING");
                     break;
                 // 下载完成
                 case DownloadManager.STATUS_SUCCESSFUL:
+                    Log.e("TAG", "STATUS_SUCCESSFUL");
                     mHandler.removeCallbacks(mTask);
                     if (isStart) {
                         isStart = false;
@@ -246,6 +263,7 @@ public class UpdateUtils {
                     break;
                 // 下载失败
                 case DownloadManager.STATUS_FAILED:
+                    Log.e("TAG", "STATUS_FAILED");
                     isStart = false;
                     mHandler.removeCallbacks(mTask);
                     if (mOnUpdateListener != null) {
@@ -255,7 +273,14 @@ public class UpdateUtils {
                     }
                     cursor.close();
                     break;
+                default:
+                    Log.e("TAG", "STATUS_default");
+                    break;
             }
+        } else {
+            // 取消了
+            mManager.remove(mDownloadId);
+            stop();
         }
     }
 
@@ -333,8 +358,10 @@ public class UpdateUtils {
         try {
             mOnUpdateListener = null;
             mHandler.removeCallbacks(mTask);
-            mManager.remove(mDownloadId);
             isStart = false;
+            if (!isDownload()) {
+                mManager.remove(mDownloadId);
+            }
             if (mContext != null) {
                 mContext.unregisterReceiver(receiver);
             }

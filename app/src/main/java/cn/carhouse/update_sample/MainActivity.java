@@ -1,6 +1,7 @@
 package cn.carhouse.update_sample;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -30,9 +31,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mTextView = findViewById(R.id.tv);
+        // https://static.car-house.cn/download/business/app/B_2.9.3_0602_online.apk
         // 网络测试
         RestConfig.INSTANCE
-                .baseUrl("https://en.boardour.com")
+                .baseUrl("https://static.car-house.cn")
                 .register(getApplication());
         mDownloadUtils = new UpdateUtils(this);
 
@@ -49,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onGranted(List<String> permissions, boolean all) {
                         if (all) {
-                            update();
+                            down();
                         }
                     }
                 });
@@ -58,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
 
     // 请求更新接口
     private void update() {
-        final String url = "download/s80/apkupdater1.json";
+        final String url = "xxx/xxx/xxx.json";
         RetrofitPresenter.INSTANCE.get(this, url, new BeanCallback<UpdateBean>() {
             @Override
             public void onSucceed(UpdateBean data) {
@@ -77,7 +79,18 @@ public class MainActivity extends AppCompatActivity {
         });
         mDownloadUtils.downloadAPK(bean);
     }
-
+    private void down() {
+        String url="https://static.car-house.cn/download/business/app/B_2.9.3_0602_online.apk";
+        AppUpdateBean bean = new AppUpdateBean(url, "test.apk", 46);
+        Log.e("TAG",url);
+        mDownloadUtils.setOnUpdateListener(new OnSingleUpdateListener() {
+            @Override
+            public void onProgress(int total, int current, float progress) {
+                mTextView.setText(total + ":" + String.format("%.2f", progress) + "%");
+            }
+        });
+        mDownloadUtils.downloadAPK(bean);
+    }
     @Override
     protected void onDestroy() {
         if (mDownloadUtils != null) {
