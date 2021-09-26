@@ -87,6 +87,8 @@ public class MainActivity extends AppCompatActivity {
     private void down(UpdateBean data) {
         // 创建更新类
         AppUpdateBean bean = new AppUpdateBean(data.getUrl(), data.getAppName(), data.getVersionCode());
+        // 设置下载标题
+        mDownloadUtils.setTitle(data.getApkName());
         // 更新进度回调
         mDownloadUtils.setOnUpdateListener(new OnSingleUpdateListener() {
             @Override

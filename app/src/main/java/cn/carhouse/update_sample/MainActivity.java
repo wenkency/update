@@ -71,18 +71,23 @@ public class MainActivity extends AppCompatActivity {
 
     private void down(UpdateBean data) {
         AppUpdateBean bean = new AppUpdateBean(data.getUrl(), data.getAppName(), data.getVersionCode());
+        // 设置下载标题
+        mDownloadUtils.setTitle(data.getApkName());
+        // 设置回调监听
         mDownloadUtils.setOnUpdateListener(new OnSingleUpdateListener() {
             @Override
             public void onProgress(int total, int current, float progress) {
                 mTextView.setText(total + ":" + String.format("%.2f", progress) + "%");
             }
         });
+        // 开始下载
         mDownloadUtils.downloadAPK(bean);
     }
+
     private void down() {
-        String url="https://static.car-house.cn/download/business/app/B_2.9.3_0602_online.apk";
-        AppUpdateBean bean = new AppUpdateBean(url, "test.apk", 46);
-        Log.e("TAG",url);
+        String url = "https://static.car-house.cn/download/business/app/B_2.9.3_0602_online.apk";
+        AppUpdateBean bean = new AppUpdateBean(url, "test.apk", 200);
+        Log.e("TAG", url);
         mDownloadUtils.setOnUpdateListener(new OnSingleUpdateListener() {
             @Override
             public void onProgress(int total, int current, float progress) {
@@ -91,6 +96,7 @@ public class MainActivity extends AppCompatActivity {
         });
         mDownloadUtils.downloadAPK(bean);
     }
+
     @Override
     protected void onDestroy() {
         if (mDownloadUtils != null) {

@@ -1,5 +1,7 @@
 package cn.carhouse.update.bean;
 
+import android.text.TextUtils;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -55,6 +57,18 @@ public class UpdateBean implements Serializable {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getApkName() {
+        try {
+            String apkName = url.substring(url.lastIndexOf("/") + 1);
+            if (!TextUtils.isEmpty(apkName)) {
+                return apkName;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "update.apk";
     }
 
     @Override
