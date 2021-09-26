@@ -1,6 +1,7 @@
 # UpdateUtils
 
-更新APP，有进度回调，适用于APP的更新和任何自定义更新UI的开发。 Android原生系统的下载器，不用依赖三方网络库，支持通知栏显示，兼容性较好。
+更新APP，有进度回调，适用于APP的更新和任何自定义更新UI的开发。 
+Android原生系统的下载器，不用依赖三方网络库，支持通知栏显示，兼容性较好。
 
 ### 引入
 
@@ -36,6 +37,11 @@ dependencies {
             .baseUrl("http://xx.xxx.xxx")
             .register(this);
 ```
+### 通知栏设置
+```
+    mDownloadUtils.setTitle("更新标题");
+    mDownloadUtils.setDescription("更新描述信息");
+```
 
 ### APK更新使用事例
 
@@ -53,13 +59,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mTextView = findViewById(R.id.tv);
-        
+        // 初始化
         mDownloadUtils = new UpdateUtils(this);
 
     }
 
     /**
-     * 调用更新
+     * 1.调用更新
      */
     public void downloadApk(View view) {
         // 1. 申请内存卡读取权限

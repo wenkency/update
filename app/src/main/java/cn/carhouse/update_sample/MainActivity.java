@@ -39,6 +39,10 @@ public class MainActivity extends AppCompatActivity {
         mDownloadUtils = new UpdateUtils(this);
 
     }
+    private void notifyConfig(){
+        mDownloadUtils.setTitle("更新标题");
+        mDownloadUtils.setDescription("更新描述信息");
+    }
 
     /**
      * 下载代码
