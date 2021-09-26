@@ -17,7 +17,7 @@ dependencies {
     // 更新(只依赖这个就行)
     implementation 'com.github.wenkency:update:2.0.0'
 
-    // 网络请求(测试，从后台获取更新信息的接口用)
+    // 网络请求(测试用，通过网络调用后台接口，获取APK更新信息)
     implementation 'com.github.wenkency:kotlin-retrofit:2.0.0'
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.google.code.gson:gson:2.8.8'
