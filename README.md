@@ -28,7 +28,7 @@ dependencies {
 ```
     // 网络初始化
     RestConfig.INSTANCE
-            .baseUrl("http://en.boardour.com")
+            .baseUrl("http://xx.xxx.xxx")
             .register(this);
 ```
 
@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
     // 2. 网络请求更新接口
     private void update() {
         // JSON地址
-        final String url = "download/s80/apkupdater1.json";
+        final String url = "xx/xx/apkupdate.json";
         RetrofitPresenter.INSTANCE.get(this, url, new BeanCallback<UpdateBean>() {
             @Override
             public void onSucceed(UpdateBean data) {
