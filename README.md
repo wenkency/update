@@ -17,7 +17,7 @@ allprojects {
 dependencies {
 
     // 更新(只依赖这个就行)
-    implementation 'com.github.wenkency:update:2.0.0'
+    implementation 'com.github.wenkency:update:2.1.0'
 
     // 网络请求(测试用，通过网络调用后台接口，获取APK更新信息)
     implementation 'com.github.wenkency:kotlin-retrofit:2.0.0'
